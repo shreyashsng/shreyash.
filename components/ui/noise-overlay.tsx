@@ -25,7 +25,7 @@ export function NoiseOverlay() {
       const len = buffer32.length
 
       for (let i = 0; i < len; i++) {
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.15) {
           buffer32[i] = 0x55ffffff
         }
       }

@@ -87,7 +87,15 @@ export default function Home() {
       .on('postgres_changes', 
         { event: 'UPDATE', schema: 'public', table: 'content' },
         (payload) => {
-          setContent(payload.new as IntroContent)
+          console.log('Content updated:', payload.new)
+          setContent(prev => ({
+            ...prev,
+            hero_text: payload.new.hero_text || prev.hero_text,
+            intro_text: payload.new.intro_text || prev.intro_text,
+            availability_text: payload.new.availability_text || prev.availability_text,
+            work_intro: payload.new.work_intro || prev.work_intro,
+            email: payload.new.email || prev.email
+          }))
         })
       .subscribe()
 

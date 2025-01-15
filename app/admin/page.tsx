@@ -177,10 +177,18 @@ export default function AdminPage() {
     try {
       const { error } = await supabase
         .from('content')
-        .update(introContent)
+        .update({
+          hero_text: introContent.hero_text,
+          intro_text: introContent.intro_text,
+          availability_text: introContent.availability_text,
+          work_intro: introContent.work_intro,
+          email: introContent.email
+        })
         .eq('id', 1)
 
       if (error) throw error
+      
+      // Show success message
       alert('Content updated successfully')
     } catch (error) {
       console.error('Error updating content:', error)

@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    
+    --primary: 200 98% 50%;
+    --primary-foreground: 0 0% 98%;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    
+    --primary: 200 98% 50%;
+    --primary-foreground: 0 0% 98%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 100vh;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted) / 0.3) transparent;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+::selection {
+  background-color: #DFFF00;
+  color: black; /* This ensures text is readable on the yellow background */
+}
+
+::-moz-selection {
+  background-color: #DFFF00;
+  color: black;
+}
+
+/* Add smooth transition for backdrop blur */
+@keyframes blurIn {
+  from {
+    backdrop-filter: blur(0);
+    opacity: 0;
+  }
+  to {
+    backdrop-filter: blur(8px);
+    opacity: 1;
+  }
+}
+
+.navbar-blur {
+  animation: blurIn 0.3s ease-out forwards;
+  background: linear-gradient(to bottom,
+    hsl(var(--background) / 0.8) 0%,
+    hsl(var(--background) / 0.7) 50%,
+    hsl(var(--background) / 0) 100%
+  );
+}
+
+/* Add these styles */
+@layer utilities {
+  .blur-animate {
+    @apply transition-[filter] duration-500;
+  }
+
+  .content-blur {
+    backdrop-filter: blur(8px);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .content-unblur {
+    backdrop-filter: blur(0);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .noise {
+    transform: translateZ(0); /* Force GPU acceleration */
+    will-change: transform; /* Hint to browser about animation */
+  }
+}
+
+@keyframes contentBlurIn {
+  0% {
+    filter: blur(8px);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-animate {
+  animation: contentBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { NoiseOverlay } from "@/components/ui/noise-overlay"
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,29 +16,45 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: 'Shreyash Singh | Portfolio',
-  description: 'Software Engineer focusing on building modern web applications and digital experiences.',
-  keywords: ['Software Engineer', 'Web Developer', 'Next.js', 'React', 'TypeScript'],
-  authors: [{ name: 'Shreyash Singh' }],
-  creator: 'Shreyash Singh',
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://shreyashsng.live',
-    title: 'Shreyash Singh | Software Engineer',
-    description: 'Software Engineer focusing on building modern web applications and digital experiences.',
-    siteName: 'Shreyash Singh | Portfolio'
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Shreyash Singh - Software Engineer',
-    description: 'Software Engineer focusing on building modern web applications and digital experiences.',
-    creator: '@shreyashsng'
-  },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
+async function getMetadata() {
+  const supabase = createServerComponentClient({ cookies })
+  
+  const { data } = await supabase
+    .from('metadata')
+    .select('*')
+    .single()
+  
+  return data
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await getMetadata()
+  
+  return {
+    title: meta?.title || 'Shreyash Singh | Portfolio',
+    description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
+    keywords: meta?.keywords || ['Software Engineer', 'Web Developer', 'Next.js', 'React', 'TypeScript'],
+    authors: [{ name: meta?.author || 'Shreyash Singh' }],
+    creator: meta?.author || 'Shreyash Singh',
+    openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: 'https://shreyashsng.live',
+      title: meta?.title || 'Shreyash Singh | Software Engineer',
+      description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
+      siteName: meta?.title || 'Shreyash Singh | Portfolio',
+      images: meta?.og_image ? [meta.og_image] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: meta?.title || 'Shreyash Singh - Software Engineer',
+      description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
+      creator: meta?.twitter_handle ? `@${meta.twitter_handle}` : '@shreyashsng',
+    },
+    icons: {
+      icon: '/favicon.ico',
+      shortcut: '/favicon.ico',
+    }
   }
 }
 

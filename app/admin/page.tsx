@@ -30,6 +30,16 @@ interface IntroContent {
   email: string
 }
 
+interface SiteMetadata {
+  id: number
+  title: string
+  description: string
+  keywords: string[]
+  author: string
+  og_image: string | null
+  twitter_handle: string
+}
+
 const emptyProject: Omit<Project, 'id'> = {
   title: "New Project",
   date: "Present",
@@ -51,10 +61,21 @@ export default function AdminPage() {
     work_intro: "",
     email: ""
   })
+  const [metadata, setMetadata] = useState<SiteMetadata>({
+    id: 1,
+    title: '',
+    description: '',
+    keywords: [],
+    author: '',
+    og_image: null,
+    twitter_handle: ''
+  })
+  const [isMetadataSaving, setIsMetadataSaving] = useState(false)
 
   useEffect(() => {
     fetchContent()
     fetchProjects()
+    fetchMetadata()
     const cleanup = setupRealtimeSubscription()
     return () => cleanup()
   }, [])
@@ -221,6 +242,45 @@ export default function AdminPage() {
     }
   }
 
+  async function fetchMetadata() {
+    try {
+      const { data, error } = await supabase
+        .from('metadata')
+        .select('*')
+        .single()
+
+      if (error) throw error
+      if (data) setMetadata(data)
+    } catch (error) {
+      console.error('Error fetching metadata:', error)
+    }
+  }
+
+  async function updateMetadata() {
+    setIsMetadataSaving(true)
+    try {
+      const { error } = await supabase
+        .from('metadata')
+        .update({
+          title: metadata.title,
+          description: metadata.description,
+          keywords: metadata.keywords,
+          author: metadata.author,
+          og_image: metadata.og_image,
+          twitter_handle: metadata.twitter_handle
+        })
+        .eq('id', 1)
+
+      if (error) throw error
+      alert('Metadata updated successfully')
+    } catch (error) {
+      console.error('Error updating metadata:', error)
+      alert('Failed to update metadata')
+    } finally {
+      setIsMetadataSaving(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
@@ -240,6 +300,7 @@ export default function AdminPage() {
           <TabsList className="bg-zinc-900/50 border border-zinc-800">
             <TabsTrigger value="intro">Introduction</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="metadata">Metadata</TabsTrigger>
           </TabsList>
 
           <TabsContent value="intro">
@@ -356,6 +417,104 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="metadata">
+            <Card className="bg-zinc-900/50 border-zinc-800">
+              <CardHeader>
+                <CardTitle>SEO & Metadata</CardTitle>
+                <CardDescription>Manage your site's SEO settings</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Site Title</Label>
+                  <Input
+                    value={metadata.title}
+                    onChange={(e) => setMetadata(prev => ({ ...prev, title: e.target.value }))}
+                    className="bg-zinc-800/30 border-zinc-700/50"
+                    placeholder="Shreyash Singh | Portfolio"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Recommended length: 50-60 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Meta Description</Label>
+                  <Textarea
+                    value={metadata.description}
+                    onChange={(e) => setMetadata(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className="bg-zinc-800/30 border-zinc-700/50 resize-none"
+                    placeholder="Software Engineer focusing on building modern web applications..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Recommended length: 150-160 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Keywords</Label>
+                  <Input
+                    value={metadata.keywords.join(', ')}
+                    onChange={(e) => setMetadata(prev => ({ 
+                      ...prev, 
+                      keywords: e.target.value.split(',').map(k => k.trim()) 
+                    }))}
+                    className="bg-zinc-800/30 border-zinc-700/50"
+                    placeholder="Software Engineer, Web Developer, Next.js, React"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Separate keywords with commas
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Author</Label>
+                  <Input
+                    value={metadata.author}
+                    onChange={(e) => setMetadata(prev => ({ ...prev, author: e.target.value }))}
+                    className="bg-zinc-800/30 border-zinc-700/50"
+                    placeholder="Shreyash Singh"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Twitter Handle</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">@</span>
+                    <Input
+                      value={metadata.twitter_handle}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, twitter_handle: e.target.value }))}
+                      className="bg-zinc-800/30 border-zinc-700/50 pl-8"
+                      placeholder="shreyashsng"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>OG Image URL</Label>
+                  <Input
+                    value={metadata.og_image || ''}
+                    onChange={(e) => setMetadata(prev => ({ ...prev, og_image: e.target.value }))}
+                    className="bg-zinc-800/30 border-zinc-700/50"
+                    placeholder="https://your-domain.com/og-image.png"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Recommended size: 1200x630 pixels
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={updateMetadata}
+                  disabled={isMetadataSaving}
+                  className="w-full bg-zinc-800 hover:bg-zinc-700"
+                >
+                  {isMetadataSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isMetadataSaving ? "Saving..." : "Save Metadata"}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

@@ -10,6 +10,7 @@ import { GitHubLogoIcon, ExternalLinkIcon } from "@radix-ui/react-icons"
 import { GridPattern } from "@/components/ui/grid-pattern"
 import { supabase } from "@/lib/supabase"
 import Image from 'next/image'
+import { SocialLinks } from "@/components/social-links"
 
 interface Project {
   id: number
@@ -241,31 +242,37 @@ export default function Home() {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-transparent backdrop-blur-sm" />
         <div className="relative max-w-screen-2xl mx-auto px-8 py-4">
-          <h3 className="text-muted-foreground flex items-center gap-2">
-            <Link 
-              href="/" 
-              className="hover:text-foreground transition-colors duration-200"
-            >
-              Shreyash Singh
-            </Link>
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-muted-foreground h-6 w-6 p-0.5 transition-colors duration-200 hover:text-foreground"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          <div className="flex items-center justify-between">
+            <h3 className="text-muted-foreground flex items-center gap-4">
+              <Link 
+                href="/" 
+                className="hover:text-foreground transition-colors duration-200"
               >
-                {theme === "dark" ? (
-                  <SunIcon className="h-4 w-4" />
-                ) : (
-                  <MoonIcon className="h-4 w-4" />
-                )}
-              </Button>
-            </motion.div>
-          </h3>
+                Shreyash Singh
+              </Link>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground h-6 w-6 p-0.5 transition-colors duration-200 hover:text-foreground"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
+                  {theme === "dark" ? (
+                    <SunIcon className="h-4 w-4" />
+                  ) : (
+                    <MoonIcon className="h-4 w-4" />
+                  )}
+                </Button>
+              </motion.div>
+            </h3>
+
+            <div className="flex items-center">
+              <SocialLinks />
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -397,6 +404,15 @@ export default function Home() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      <motion.footer 
+        className="max-w-xl mx-auto  py-2 mt-8  border-zinc-800 mb-[5px]"
+        variants={fadeIn}
+      >
+        <p className="text-sm text-muted-foreground/50 text-center">
+          Created by Shreyash
+        </p>
+      </motion.footer>
     </motion.main>
   )
 }

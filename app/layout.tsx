@@ -30,6 +30,29 @@ async function getMetadata() {
 export async function generateMetadata(): Promise<Metadata> {
   const meta = await getMetadata()
   
+  // Helper function to check if image URL is accessible
+  async function isImageAccessible(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' })
+      return response.ok
+    } catch {
+      return false
+    }
+  }
+
+  // Determine the best image URL to use
+  const getImageUrl = async () => {
+    if (meta?.og_image) {
+      const isAccessible = await isImageAccessible(meta.og_image)
+      if (isAccessible) return meta.og_image
+    }
+    
+    // Fallback to default image
+    return '/profile-fallback.png'
+  }
+
+  const imageUrl = await getImageUrl()
+  
   return {
     title: meta?.title || 'Shreyash Singh | Portfolio',
     description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
@@ -39,17 +62,23 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: 'website',
       locale: 'en_US',
-      url: 'https://shreyashsng.live',
+      url: 'https://shreyash.social',
       title: meta?.title || 'Shreyash Singh | Software Engineer',
       description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
       siteName: meta?.title || 'Shreyash Singh | Portfolio',
-      images: meta?.og_image ? [meta.og_image] : undefined,
+      images: [{
+        url: imageUrl,
+        width: 1200,
+        height: 630,
+        alt: 'Shreyash Singh'
+      }],
     },
     twitter: {
       card: 'summary_large_image',
       title: meta?.title || 'Shreyash Singh - Software Engineer',
       description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
       creator: meta?.twitter_handle ? `@${meta.twitter_handle}` : '@shreyashsng',
+      images: [imageUrl],
     },
     icons: {
       icon: '/favicon.ico',

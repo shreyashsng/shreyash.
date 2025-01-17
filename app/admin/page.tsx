@@ -496,15 +496,31 @@ export default function AdminPage() {
 
                 <div className="space-y-2">
                   <Label>OG Image URL</Label>
-                  <Input
-                    value={metadata.og_image || ''}
-                    onChange={(e) => setMetadata(prev => ({ ...prev, og_image: e.target.value }))}
-                    className="bg-zinc-800/30 border-zinc-700/50"
-                    placeholder="https://your-domain.com/og-image.png"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Recommended size: 1200x630 pixels
-                  </p>
+                  <div className="space-y-4">
+                    <Input
+                      value={metadata.og_image || ''}
+                      onChange={(e) => setMetadata(prev => ({ ...prev, og_image: e.target.value }))}
+                      className="bg-zinc-800/30 border-zinc-700/50"
+                      placeholder="https://your-domain.com/og-image.png"
+                    />
+                    <div className="aspect-[1200/630] relative rounded-lg overflow-hidden bg-zinc-800/50">
+                      <Image
+                        src={metadata.og_image || '/profile-fallback.png'}
+                        alt="OG Image Preview"
+                        width={1200}
+                        height={630}
+                        className="object-cover"
+                        onError={(e) => {
+                          // Fallback to default image if custom image fails
+                          const img = e.target as HTMLImageElement
+                          img.src = '/profile-fallback.png'
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Recommended size: 1200x630 pixels. Will fallback to default image if URL is invalid.
+                    </p>
+                  </div>
                 </div>
 
                 <Button 

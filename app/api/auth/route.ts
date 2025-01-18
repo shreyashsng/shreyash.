@@ -5,6 +5,16 @@ export async function POST(request: Request) {
   try {
     const { username, password } = await request.json()
     
+    // Add console.log for debugging (remove in production)
+    console.log('Received credentials:', { 
+      username, 
+      password,
+      expected: {
+        username: process.env.ADMIN_ID,
+        passwordMatch: password === process.env.ADMIN_PASSWORD
+      }
+    })
+    
     if (username === process.env.ADMIN_ID && password === process.env.ADMIN_PASSWORD) {
       // Set auth cookie
       cookies().set('is_admin', 'true', {
@@ -12,13 +22,28 @@ export async function POST(request: Request) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
+        maxAge: 60 * 60 * 24, // 24 hours
       })
       
       return NextResponse.json({ success: true })
     }
     
-    return new NextResponse('Unauthorized', { status: 401 })
+    // Return more specific error
+    return new NextResponse(
+      JSON.stringify({ error: 'Invalid credentials' }), 
+      { 
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   } catch (error) {
-    return new NextResponse('Internal Error', { status: 500 })
+    console.error('Auth error:', error)
+    return new NextResponse(
+      JSON.stringify({ error: 'Internal server error' }), 
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 } 

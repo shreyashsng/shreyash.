@@ -15,5 +15,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/admin/:path*'
+  matcher: [
+    '/admin/:path*',
+    // Exclude API routes from middleware
+    '/((?!api/auth).*)' 
+  ]
 } 

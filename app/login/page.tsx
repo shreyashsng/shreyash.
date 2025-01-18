@@ -27,13 +27,16 @@ export default function LoginPage() {
         body: JSON.stringify(credentials),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Invalid credentials")
+        throw new Error(data.error || "Failed to authenticate")
       }
 
       router.push("/admin")
     } catch (error) {
-      setError("Invalid username or password")
+      console.error('Login error:', error)
+      setError(error instanceof Error ? error.message : "Invalid username or password")
     } finally {
       setIsLoading(false)
     }

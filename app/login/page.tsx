@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 
 export default function LoginPage() {
-  const [password, setPassword] = useState("")
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: ""
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
@@ -21,16 +24,16 @@ export default function LoginPage() {
       const response = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify(credentials),
       })
 
       if (!response.ok) {
-        throw new Error("Invalid password")
+        throw new Error("Invalid credentials")
       }
 
       router.push("/admin")
     } catch (error) {
-      setError("Invalid password")
+      setError("Invalid username or password")
     } finally {
       setIsLoading(false)
     }
@@ -41,19 +44,31 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <h2 className="text-2xl font-medium text-zinc-200">Admin Access</h2>
-          <p className="text-sm text-zinc-400 mt-2">Enter password to continue</p>
+          <p className="text-sm text-zinc-400 mt-2">Enter your credentials to continue</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-zinc-900/50 border-zinc-800"
-              placeholder="Enter password"
-              required
-            />
+          <div className="space-y-4">
+            <div>
+              <Input
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="bg-zinc-900/50 border-zinc-800"
+                placeholder="Username"
+                required
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                className="bg-zinc-900/50 border-zinc-800"
+                placeholder="Password"
+                required
+              />
+            </div>
             {error && (
               <p className="text-sm text-red-500 mt-2">{error}</p>
             )}

@@ -5,12 +5,13 @@ import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Loader2, PlusCircle } from "lucide-react"
+import { Loader2, PlusCircle, Upload, Link as LinkIcon, LogOut } from "lucide-react"
 import { EditProjectModal } from "@/components/ui/edit-project-modal"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import Image from 'next/image'
+import { useRouter } from "next/navigation"
 
 interface Project {
   id: number
@@ -71,6 +72,7 @@ export default function AdminPage() {
     twitter_handle: ''
   })
   const [isMetadataSaving, setIsMetadataSaving] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     fetchContent()
@@ -259,6 +261,16 @@ export default function AdminPage() {
   async function updateMetadata() {
     setIsMetadataSaving(true)
     try {
+      // Validate image URL if provided
+      if (metadata.og_image) {
+        const isValidImage = await validateImage(metadata.og_image)
+        if (!isValidImage) {
+          alert('Invalid image URL. Please ensure the image meets the requirements.')
+          setIsMetadataSaving(false)
+          return
+        }
+      }
+
       const { error } = await supabase
         .from('metadata')
         .update({
@@ -272,12 +284,89 @@ export default function AdminPage() {
         .eq('id', 1)
 
       if (error) throw error
-      alert('Metadata updated successfully')
     } catch (error) {
       console.error('Error updating metadata:', error)
       alert('Failed to update metadata')
     } finally {
       setIsMetadataSaving(false)
+    }
+  }
+
+  // Add image validation function
+  async function validateImage(url: string): Promise<boolean> {
+    try {
+      // Handle Google Drive URLs
+      if (url.includes('drive.google.com')) {
+        // Extract file ID from Google Drive URL
+        const fileId = url.match(/[-\w]{25,}/);
+        if (!fileId) return false;
+        
+        // Convert to direct download URL
+        const directUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+        
+        // Update the metadata with direct URL
+        setMetadata(prev => ({ ...prev, og_image: directUrl }));
+        
+        // Validate the direct URL
+        const response = await fetch(directUrl, { method: 'HEAD' });
+        if (!response.ok) return false;
+        
+        return true;
+      }
+
+      // Handle regular URLs
+      const response = await fetch(url, { method: 'HEAD' })
+      if (!response.ok) return false
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType?.startsWith('image/')) return false
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async function uploadImage(file: File) {
+    try {
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB')
+      }
+
+      // Check file type
+      if (!file.type.match(/^image\/(jpeg|png)$/)) {
+        throw new Error('Only JPEG and PNG files are allowed')
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase()
+      const fileName = `og-image-${Date.now()}.${fileExt}`
+      
+      // Upload to Supabase storage with public bucket
+      const { data, error: uploadError } = await supabase.storage
+        .from('og-images')
+        .upload(`public/${fileName}`, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type
+        })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw new Error(uploadError.message)
+      }
+
+      if (!data) throw new Error('No data returned from upload')
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('og-images')
+        .getPublicUrl(`public/${fileName}`)
+
+      return publicUrl
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      throw error instanceof Error ? error : new Error('Failed to upload image')
     }
   }
 
@@ -292,8 +381,22 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-xl font-medium">Content Management</h1>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-xl font-medium">Content Management</h1>
+          </div>
+
+          <Button 
+            variant="ghost" 
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST' })
+              router.push('/login')
+            }}
+            className="text-sm text-zinc-400 hover:text-zinc-200 flex items-center gap-2"
+          >
+            <span>Logout</span>
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
 
         <Tabs defaultValue="intro" className="space-y-6">
@@ -495,31 +598,83 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>OG Image URL</Label>
+                  <Label>OG Image</Label>
                   <div className="space-y-4">
-                    <Input
-                      value={metadata.og_image || ''}
-                      onChange={(e) => setMetadata(prev => ({ ...prev, og_image: e.target.value }))}
-                      className="bg-zinc-800/30 border-zinc-700/50"
-                      placeholder="https://your-domain.com/og-image.png"
-                    />
-                    <div className="aspect-[1200/630] relative rounded-lg overflow-hidden bg-zinc-800/50">
-                      <Image
-                        src={metadata.og_image || '/profile-fallback.png'}
-                        alt="OG Image Preview"
-                        width={1200}
-                        height={630}
-                        className="object-cover"
-                        onError={(e) => {
-                          // Fallback to default image if custom image fails
-                          const img = e.target as HTMLImageElement
-                          img.src = '/profile-fallback.png'
-                        }}
-                      />
+                    <div className="flex flex-col gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-2">
+                          <Input
+                            value={metadata.og_image || ''}
+                            onChange={(e) => setMetadata(prev => ({ ...prev, og_image: e.target.value }))}
+                            className="bg-zinc-800/30 border-zinc-700/50"
+                            placeholder="Enter image URL"
+                          />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <LinkIcon className="w-3 h-3" />
+                            Direct URL or Google Drive link
+                          </p>
+                        </div>
+                        
+                        <div className="flex flex-col gap-2">
+                          <Input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            className="bg-zinc-800/30 border-zinc-700/50 file:bg-zinc-800 file:border-0 file:text-sm file:font-medium"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              
+                              try {
+                                setIsMetadataSaving(true) // Show loading state
+                                const url = await uploadImage(file)
+                                setMetadata(prev => ({ ...prev, og_image: url }))
+                                // Optionally save metadata immediately after upload
+                                await updateMetadata()
+                              } catch (error) {
+                                alert(error instanceof Error ? error.message : 'Failed to upload image')
+                              } finally {
+                                setIsMetadataSaving(false)
+                              }
+                            }}
+                          />
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Upload className="w-3 h-3" />
+                            Upload from device
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Recommended size: 1200x630 pixels. Will fallback to default image if URL is invalid.
-                    </p>
+
+                    <div className="rounded-lg overflow-hidden border border-zinc-800">
+                      <div className="bg-zinc-900/50 px-3 py-2 border-b border-zinc-800">
+                        <p className="text-xs text-muted-foreground">Preview (1200x630)</p>
+                      </div>
+                      <div className="aspect-[1200/630] relative bg-zinc-800/50">
+                        <Image
+                          src={metadata.og_image || 'https://shreyash.social/profile-fallback.png'}
+                          alt="OG Image Preview"
+                          width={1200}
+                          height={630}
+                          className="object-cover"
+                          onError={(e) => {
+                            const img = e.target as HTMLImageElement
+                            img.src = 'https://shreyash.social/profile-fallback.png'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800">
+                      <p className="text-sm font-medium">Image Requirements:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>• Dimensions: 1200x630 pixels</li>
+                        <li>• Format: PNG or JPEG</li>
+                        <li>• Max size: 5MB</li>
+                        <li>• Upload directly or use URL</li>
+                        <li>• Supports Google Drive links</li>
+                        <li>• Will fallback to default if invalid</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
 

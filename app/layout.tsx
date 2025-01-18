@@ -40,15 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
-  // Determine the best image URL to use
+  // Determine the best image URL to use with absolute path
   const getImageUrl = async () => {
     if (meta?.og_image) {
       const isAccessible = await isImageAccessible(meta.og_image)
       if (isAccessible) return meta.og_image
     }
     
-    // Fallback to default image
-    return '/profile-fallback.png'
+    // Use absolute URL for fallback image
+    return 'https://shreyash.social/profile-fallback.png'
   }
 
   const imageUrl = await getImageUrl()
@@ -70,7 +70,8 @@ export async function generateMetadata(): Promise<Metadata> {
         url: imageUrl,
         width: 1200,
         height: 630,
-        alt: 'Shreyash Singh'
+        alt: 'Shreyash Singh',
+        type: 'image/png'
       }],
     },
     twitter: {
@@ -78,7 +79,12 @@ export async function generateMetadata(): Promise<Metadata> {
       title: meta?.title || 'Shreyash Singh - Software Engineer',
       description: meta?.description || 'Software Engineer focusing on building modern web applications and digital experiences.',
       creator: meta?.twitter_handle ? `@${meta.twitter_handle}` : '@shreyashsng',
-      images: [imageUrl],
+      images: [{
+        url: imageUrl,
+        width: 1200,
+        height: 630,
+        alt: 'Shreyash Singh'
+      }],
     },
     icons: {
       icon: '/favicon.ico',

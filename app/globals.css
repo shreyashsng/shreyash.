@@ -85,9 +85,12 @@
 
 .navbar-blur {
   animation: blurIn 0.3s ease-out forwards;
-  background: linear-gradient(to bottom,
-    hsl(var(--background) / 0.8) 0%,
-    hsl(var(--background) / 0.7) 50%,
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--background)) 0%,
+    hsl(var(--background) / 0.85) 40%,
+    hsl(var(--background) / 0.6) 60%,
+    hsl(var(--background) / 0.2) 80%,
     hsl(var(--background) / 0) 100%
   );
 }
@@ -131,4 +134,25 @@
 
 .content-animate {
   animation: contentBlurIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+  
+  100% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 1s infinite;
 }

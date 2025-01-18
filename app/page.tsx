@@ -219,7 +219,7 @@ export default function Home() {
 
   return (
     <motion.main 
-      className="min-h-screen text-foreground pb-16 relative"
+      className="min-h-screen text-foreground pb-2 relative"
       variants={pageTransition}
       initial="initial"
       animate={isLoading ? "initial" : "animate"}
@@ -240,8 +240,9 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-transparent backdrop-blur-sm" />
-        <div className="relative max-w-screen-2xl mx-auto px-8 py-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background/0 backdrop-blur-[8px]" />
+        
+        <div className="relative max-w-screen-2xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <h3 className="text-muted-foreground flex items-center gap-4">
               <Link 
@@ -355,7 +356,7 @@ export default function Home() {
               >
                 <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-zinc-900 mb-6">
                   {project.image_url && (
-                    <Image 
+          <Image
                       src={project.image_url} 
                       alt={project.title}
                       width={1920}
@@ -406,12 +407,13 @@ export default function Home() {
       </motion.div>
 
       <motion.footer 
-        className="max-w-xl mx-auto  py-2 mt-8  border-zinc-800 mb-[5px]"
+        className="max-w-xl mx-auto px-8 py-4 mt-8"
         variants={fadeIn}
       >
-        <p className="text-sm text-muted-foreground/50 text-center">
-          Created by Shreyash
-        </p>
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground/50">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse-glow"></span>
+          <span>ALL SYSTEMS OPERATIONAL</span>
+        </div>
       </motion.footer>
     </motion.main>
   )

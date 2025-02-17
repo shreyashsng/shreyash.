@@ -101,10 +101,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <head>
+        <Script
+          src={`${process.env.NEXT_PUBLIC_UMAMI_URL}/script.js`}
+          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+          strategy="afterInteractive"
+        />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -112,12 +116,6 @@ export default function RootLayout({
           storageKey="portfolio-theme"
         >
           {children}
-          <Script
-          src={`${process.env.NEXT_PUBLIC_UMAMI_URL}/script.js`}
-          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
-          strategy="afterInteractive"
-          defer
-        />
           <NoiseOverlay />
         </ThemeProvider>
       </body>

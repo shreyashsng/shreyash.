@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     const isValidPassword = password === process.env.ADMIN_PASSWORD
 
     if (isValidUsername && isValidPassword) {
-      cookies().set('is_admin', 'true', {
+      const cookieStore = await cookies()
+      cookieStore.set('is_admin', 'true', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
